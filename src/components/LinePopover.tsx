@@ -134,9 +134,11 @@ interface LinePopoverProps {
     chatId: string;
     contentHash: string;
     lineText: string;
+    parentQuestion?: string;
+    fullResponse?: string;
 }
 
-const LinePopover: React.FC<LinePopoverProps> = ({ chatId, contentHash, lineText }) => {
+const LinePopover: React.FC<LinePopoverProps> = ({ chatId, contentHash, lineText, parentQuestion, fullResponse }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
     const [subChat, setSubChat] = useState<SubChat | null>(null);
@@ -189,7 +191,13 @@ const LinePopover: React.FC<LinePopoverProps> = ({ chatId, contentHash, lineText
         setError(null);
         setLoading(true);
 
-        let chat = subChat ?? createSubChat(chatId, contentHash, lineText);
+        let chat = subChat;
+        if (!chat) {
+            const initialContext = parentQuestion
+                ? `### [Original Question to AI]:\n${parentQuestion}\n\n### [Full AI Response]:\n${fullResponse}`
+                : '';
+            chat = createSubChat(chatId, contentHash, lineText, initialContext);
+        }
         chat = addMessage(chat, 'user', input.trim());
         setSubChat(chat);
         setInput('');

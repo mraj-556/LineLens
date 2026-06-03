@@ -23,6 +23,12 @@ export interface PlatformAdapter {
     /** Get the text content from a text block element */
     getBlockText(blockEl: HTMLElement): string;
 
+    /** Get the user question that preceded this assistant message */
+    getParentQuestion(assistantMessageEl: HTMLElement): string;
+
+    /** Get the full text of the assistant response */
+    getFullResponse(assistantMessageEl: HTMLElement): string;
+
     /** The DOM element to observe for new messages (for MutationObserver) */
     getObservationTarget(): HTMLElement | null;
 }

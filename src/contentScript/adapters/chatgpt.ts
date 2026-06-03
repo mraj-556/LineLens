@@ -48,6 +48,25 @@ export class ChatGPTAdapter implements PlatformAdapter {
         return (blockEl.textContent ?? '').trim();
     }
 
+    getParentQuestion(assistantMessageEl: HTMLElement): string {
+        const userNodes = Array.from(document.querySelectorAll<HTMLElement>('[data-message-author-role="user"]'));
+
+        // Find the last user message that appears BEFORE this assistant message in the DOM
+        let closestUserNode: HTMLElement | null = null;
+        for (const node of userNodes) {
+            // If node comes before assistantMessageEl
+            if (node.compareDocumentPosition(assistantMessageEl) & Node.DOCUMENT_POSITION_FOLLOWING) {
+                closestUserNode = node;
+            }
+        }
+
+        return closestUserNode ? (closestUserNode.textContent ?? '').trim() : '';
+    }
+
+    getFullResponse(assistantMessageEl: HTMLElement): string {
+        return (assistantMessageEl.textContent ?? '').trim();
+    }
+
     getObservationTarget(): HTMLElement | null {
         // The main thread container where messages appear
         return (

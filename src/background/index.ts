@@ -35,19 +35,19 @@ function getProviderEndpoint(provider: UserSettings['provider']): string {
     }
 }
 
-function buildSystemPrompt(lineText: string, contextSummary: string): string {
+function buildSystemPrompt(lineText: string, contextSummary: string, isFirstMessage: boolean): string {
     return `You are LineLens, a concise clarification assistant. The user is reading an AI-generated response and has a question about a specific line or concept.
 
-CONTEXT LINE:
+### CONTEXT LINE:
 "${lineText}"
 
-${contextSummary ? `PREVIOUS CONTEXT SUMMARY:\n${contextSummary}\n` : ''}
-RULES:
-- Be concise, clear and directly address the question.
+${isFirstMessage && contextSummary ? `${contextSummary}\n` : ''}
+### RULES:
+- Be concise, clear and directly address the user's latest question.
 - Keep your response brief (2-4 sentences max) unless the question requires a detailed explanation.
-- Use markdown for formatting when helpful.
-- Stay context-aware: your answer should relate to the line above.
-- If the question seems unrelated, still try to help but keep it brief.`;
+- The user's question, the AI's full response, and the selected context line (if this is the first turn) have been provided above.
+- The conversation history provided represents the "sub chat" regarding the selected line.
+- Stay context-aware: your answer should relate to the CONTEXT LINE above.`;
 }
 
 async function callOpenAICompatible(
@@ -137,7 +137,8 @@ async function handleLLMRequest(req: LLMRequest): Promise<LLMResponse> {
             };
         }
 
-        const systemPrompt = buildSystemPrompt(lineText, contextSummary);
+        const isFirstMessage = userMsgCount === 1;
+        const systemPrompt = buildSystemPrompt(lineText, contextSummary, isFirstMessage);
 
         let content: string;
 

@@ -38,13 +38,13 @@ export async function deleteSubChat(chatId: string, contentHash: string): Promis
     await chrome.storage.local.remove(key);
 }
 
-export function createSubChat(chatId: string, contentHash: string, lineText: string): SubChat {
+export function createSubChat(chatId: string, contentHash: string, lineText: string, contextSummary: string = ''): SubChat {
     return {
         chatId,
         contentHash,
         lineText,
         messages: [],
-        contextSummary: '',
+        contextSummary,
         createdAt: Date.now(),
         updatedAt: Date.now(),
     };

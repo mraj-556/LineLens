@@ -15,7 +15,7 @@ let observer: MutationObserver | null = null;
 
 /* ── Core injection logic ──────────────────────────── */
 
-function injectIntoBlock(blockEl: HTMLElement, chatId: string, adapter: PlatformAdapter) {
+function injectIntoBlock(blockEl: HTMLElement, messageEl: HTMLElement, chatId: string, adapter: PlatformAdapter) {
     if (blockEl.getAttribute(WRAPPER_ATTR)) return;
 
     const text = adapter.getBlockText(blockEl);
@@ -23,6 +23,9 @@ function injectIntoBlock(blockEl: HTMLElement, chatId: string, adapter: Platform
 
     const contentHash = hashString(text);
     const rootId = `ll-${chatId}-${contentHash}`;
+
+    const parentQuestion = adapter.getParentQuestion(messageEl);
+    const fullResponse = adapter.getFullResponse(messageEl);
 
     // Mark the block as processed
     blockEl.setAttribute(WRAPPER_ATTR, 'true');
@@ -46,7 +49,13 @@ function injectIntoBlock(blockEl: HTMLElement, chatId: string, adapter: Platform
     const root = createRoot(inner);
     root.render(
         <React.StrictMode>
-            <LinePopover chatId={chatId} contentHash={contentHash} lineText={text} />
+            <LinePopover
+                chatId={chatId}
+                contentHash={contentHash}
+                lineText={text}
+                parentQuestion={parentQuestion}
+                fullResponse={fullResponse}
+            />
         </React.StrictMode>
     );
     mountedRoots.set(rootId, root);
@@ -57,7 +66,7 @@ function processPage(adapter: PlatformAdapter, chatId: string) {
     for (const msgEl of messageEls) {
         const blocks = adapter.getTextBlocks(msgEl);
         for (const block of blocks) {
-            injectIntoBlock(block, chatId, adapter);
+            injectIntoBlock(block, msgEl, chatId, adapter);
         }
     }
 }
@@ -80,7 +89,7 @@ async function restoreExistingChats(adapter: PlatformAdapter, chatId: string) {
             if (!text) continue;
             const hash = hashString(text);
             if (hashesWithChats.has(hash)) {
-                injectIntoBlock(block, chatId, adapter);
+                injectIntoBlock(block, msgEl, chatId, adapter);
             }
         }
     }
