@@ -53,11 +53,11 @@ jobs:
       - name: Test Drive access
         run: |
           rclone lsd gdrive: \
-            --drive-root-folder-id 1fEKFh-kCGN6cPLl_-_FCrTGfMcwktU3f -vv
+            --drive-root-folder-id 1fEKFh-iCGN6cPLl_-_FXrTGdMcwktU3g -vv
 
       - name: Upload ZIP
         run: |
           rclone copyto \
             LineLens.zip \
             gdrive:LineLens.zip \
-            --drive-root-folder-id 1fEKFh-kCGN6cPLl_-_FCrTGfMcwktU3f
+            --drive-root-folder-id 1fEKFh-iCGN6cPLl_-_FXrTGdMcwktU3g
