@@ -29,35 +29,9 @@ jobs:
         run: |
           zip -r LineLens.zip dist
 
-      - name: Install rclone
-        run: curl https://rclone.org/install.sh | sudo bash
-
-      - name: Configure rclone
-        run: |
-          mkdir -p ~/.config/rclone
-          cat > ~/.config/rclone/rclone.conf << EOF
-          [gdrive]
-          type = drive
-          scope = drive
-          service_account_file = credentials.json
-          EOF
-
-      - name: Write credentials
-        run: |
-          echo '${{ secrets.GDRIVE_CREDENTIALS }}' > credentials.json
-      
-      - name: Show service account email
-        run: |
-          cat credentials.json | jq -r '.client_email'
-
-      - name: Test Drive access
-        run: |
-          rclone lsd gdrive: \
-            --drive-root-folder-id 1fEKFh-iCGN6cPLl_-_FXrTGdMcwktU3g -vv
-
-      - name: Upload ZIP
-        run: |
-          rclone copyto \
-            LineLens.zip \
-            gdrive:LineLens.zip \
-            --drive-root-folder-id 1fEKFh-iCGN6cPLl_-_FXrTGdMcwktU3g
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LineLens
+          path: LineLens.zip
+          retention-days: 30
