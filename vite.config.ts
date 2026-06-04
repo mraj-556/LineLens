@@ -4,20 +4,24 @@ import { crx } from '@crxjs/vite-plugin'
 import manifest from './manifest.json'
 import { fileURLToPath, URL } from 'node:url'
 
-export default defineConfig({
-    plugins: [react(), crx({ manifest })],
-    resolve: {
-        alias: {
-            '@': fileURLToPath(new URL('./src', import.meta.url))
+export default defineConfig(({ command }) => {
+    return {
+        plugins: [react(), crx({ manifest })],
+        resolve: {
+            alias: {
+                '@': fileURLToPath(new URL('./src', import.meta.url))
+            },
         },
-    },
-    server: {
-        port: 5173,
-        strictPort: true,
-        hmr: {
-            host: 'localhost',
-            port: 5173,
-        },
-        cors: true
-    },
+        ...(command === 'serve' ? {
+            server: {
+                port: 5173,
+                strictPort: true,
+                hmr: {
+                    host: 'localhost',
+                    port: 5173,
+                },
+                cors: true
+            }
+        } : {})
+    }
 })
