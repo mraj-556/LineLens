@@ -24,6 +24,12 @@ const EyeOffIcon = () => (
     </svg>
 );
 
+const ChevronDownIcon = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="6 9 12 15 18 9" />
+    </svg>
+);
+
 /* ── Main Popup Component ──────────────────────────── */
 
 const PopupApp: React.FC = () => {
@@ -33,7 +39,9 @@ const PopupApp: React.FC = () => {
     const [showKey, setShowKey] = useState(false);
     const [saved, setSaved] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [models, setModels] = useState<LLMModel[]>([]);
+    const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
+
+    const models = PROVIDER_MODELS[provider] ?? [];
 
     // Load saved settings
     useEffect(() => {
@@ -43,19 +51,15 @@ const PopupApp: React.FC = () => {
                 setProvider(s.provider);
                 setApiKey(s.apiKey);
                 setModelId(s.modelId);
+            } else {
+                const defaultModels = PROVIDER_MODELS['openai'] ?? [];
+                if (defaultModels.length > 0) {
+                    setModelId(defaultModels[0].id);
+                }
             }
             setLoading(false);
         })();
     }, []);
-
-    // Update models when provider changes
-    useEffect(() => {
-        const providerModels = PROVIDER_MODELS[provider] ?? [];
-        setModels(providerModels);
-        if (providerModels.length > 0 && !providerModels.find((m) => m.id === modelId)) {
-            setModelId(providerModels[0].id);
-        }
-    }, [provider]);
 
     const handleSave = useCallback(async () => {
         if (!apiKey.trim()) return;
@@ -107,7 +111,13 @@ const PopupApp: React.FC = () => {
                         {(Object.keys(PROVIDER_LABELS) as LLMProvider[]).map((p) => (
                             <button
                                 key={p}
-                                onClick={() => setProvider(p)}
+                                onClick={() => {
+                                    setProvider(p);
+                                    const nextModels = PROVIDER_MODELS[p] ?? [];
+                                    if (nextModels.length > 0 && !nextModels.find((m) => m.id === modelId)) {
+                                        setModelId(nextModels[0].id);
+                                    }
+                                }}
                                 className={`px-2.5 py-2 rounded-lg text-xs font-medium transition-all duration-150 border
                   ${provider === p
                                         ? 'bg-ll-primary/15 border-ll-primary/40 text-ll-primaryHover shadow-glow'
@@ -143,24 +153,49 @@ const PopupApp: React.FC = () => {
                 </div>
 
                 {/* Model Selection */}
-                <div className="space-y-2">
+                <div className="space-y-2 relative">
                     <label className="text-xs font-medium text-ll-textMuted uppercase tracking-wider">
                         Model
                     </label>
-                    <select
-                        value={modelId}
-                        onChange={(e) => setModelId(e.target.value)}
-                        className="w-full px-3 py-2.5 bg-ll-surface border border-ll-border rounded-lg text-sm text-ll-text outline-none transition-all duration-150 focus:border-ll-primary/40 focus:shadow-glow appearance-none cursor-pointer"
-                        style={{
-                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-                            backgroundRepeat: 'no-repeat',
-                            backgroundPosition: 'right 12px center',
-                        }}
-                    >
-                        {models.map((m) => (
-                            <option key={m.id} value={m.id} className="bg-ll-bg">{m.name}</option>
-                        ))}
-                    </select>
+                    <div className="relative">
+                        <input
+                            value={modelId}
+                            onChange={(e) => {
+                                setModelId(e.target.value);
+                                setIsModelDropdownOpen(true);
+                            }}
+                            onFocus={() => setIsModelDropdownOpen(true)}
+                            onBlur={() => setTimeout(() => setIsModelDropdownOpen(false), 200)}
+                            placeholder="Select or type model ID"
+                            className="w-full px-3 py-2.5 pr-10 bg-ll-surface border border-ll-border rounded-lg text-sm text-ll-text placeholder:text-ll-textDim outline-none transition-all duration-150 focus:border-ll-primary/40 focus:shadow-glow cursor-text"
+                        />
+                        <button
+                            onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
+                            className="absolute right-0 top-0 bottom-0 w-10 flex items-center justify-center text-ll-textDim hover:text-ll-text transition-colors"
+                        >
+                            <ChevronDownIcon />
+                        </button>
+                    </div>
+                    {isModelDropdownOpen && (
+                        <div className="absolute z-10 w-full mt-1 bg-ll-surface border border-ll-border rounded-lg shadow-glow max-h-48 overflow-y-auto py-1">
+                            {models.map((m) => (
+                                <button
+                                    key={m.id}
+                                    onClick={() => {
+                                        setModelId(m.id);
+                                        setIsModelDropdownOpen(false);
+                                    }}
+                                    className="w-full text-left px-3 py-2 text-sm text-ll-text hover:bg-ll-primary/10 hover:text-ll-primaryHover transition-colors flex flex-col"
+                                >
+                                    <span className="font-medium">{m.name}</span>
+                                    <span className="text-[10px] text-ll-textDim font-mono">{m.id}</span>
+                                </button>
+                            ))}
+                            {models.length === 0 && (
+                                <div className="px-3 py-2.5 text-sm text-ll-textDim">No models available</div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Save Button */}
