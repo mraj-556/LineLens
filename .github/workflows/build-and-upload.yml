@@ -45,6 +45,15 @@ jobs:
       - name: Write credentials
         run: |
           echo '${{ secrets.GDRIVE_CREDENTIALS }}' > credentials.json
+      
+      - name: Show service account email
+        run: |
+          cat credentials.json | jq -r '.client_email'
+
+      - name: Test Drive access
+        run: |
+          rclone lsd gdrive: \
+            --drive-root-folder-id 1fEKFh-kCGN6cPLl_-_FCrTGfMcwktU3f -vv
 
       - name: Upload ZIP
         run: |
