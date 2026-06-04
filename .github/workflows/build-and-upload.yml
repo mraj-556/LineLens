@@ -27,11 +27,5 @@ jobs:
 
       - name: Create ZIP
         run: |
-          zip -r LineLens.zip dist
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: LineLens
-          path: LineLens.zip
-          retention-days: 30
+          cd dist
+          zip -r ../LineLens.zip .
