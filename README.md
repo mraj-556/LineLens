@@ -4,6 +4,7 @@ Elevate Your AI with **Contextual Intelligence**.
 
 LineLens injects a seamless clarifying workflow directly within ChatGPT's UI. Ask sub-questions on specific lines of text while maintaining accurate context.
 
+[Tutorial Video](Docs/tutorial.mp4)
 ## ✨ Features
 - **Inline Clarification:** Hover over any AI-generated text and inject a sub-question directly below it — no copy-pasting needed.
 - **Context-Aware Threads:** Each sub-chat carries the full parent context plus its own history, keeping follow-ups razor-sharp.
