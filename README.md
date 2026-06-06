@@ -6,7 +6,7 @@ LineLens injects a seamless clarifying workflow directly within ChatGPT's UI. As
 
 ## 🎬 Demo
 
-<video src="Docs/tutorial.mp4" controls width="100%"></video>
+https://github.com/user-attachments/assets/15ed5ac2-4dcd-46dc-9557-dff541f6f801
 
 ## ✨ Features
 - **Inline Clarification:** Hover over any AI-generated text and inject a sub-question directly below it — no copy-pasting needed.
