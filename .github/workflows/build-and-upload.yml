@@ -1,4 +1,4 @@
-name: Build and Release
+name: Build and Publish
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  build-and-publish:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,12 +28,26 @@ jobs:
       - name: Build Extension
         run: bun run build
 
-      - name: Create ZIP
+      - name: Create ZIP Package
         run: |
           cd dist
           zip -r ../LineLens.zip .
 
-      - name: Create or Update Release
+      - name: Install Chrome Web Store CLI
+        run: npm install -g chrome-webstore-upload-cli
+
+      - name: Upload and Publish Extension
+        env:
+          CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+        run: |
+          chrome-webstore-upload upload \
+            --source ./LineLens.zip \
+            --extension-id "${{ secrets.CHROME_EXTENSION_ID }}" \
+            --auto-publish
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
@@ -42,7 +56,7 @@ jobs:
           overwrite_files: true
           make_latest: true
 
-      - name: Upload Artifact
+      - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: LineLens
