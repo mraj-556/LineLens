@@ -2,9 +2,9 @@ name: Build and Publish
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
+    push:
+      branches:
+        - main
 
 permissions:
   contents: write
@@ -12,11 +12,11 @@ permissions:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
-
+  
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
+  
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -33,19 +33,34 @@ jobs:
           cd dist
           zip -r ../LineLens.zip .
 
-      - name: Install Chrome Web Store CLI
-        run: npm install -g chrome-webstore-upload-cli
-
-      - name: Upload and Publish Extension
-        env:
-          CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
-          REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+      - name: Get Access Token
+        id: auth
         run: |
-          chrome-webstore-upload upload \
-            --source ./LineLens.zip \
-            --extension-id "${{ secrets.CHROME_EXTENSION_ID }}" \
-            --auto-publish
+          RESPONSE=$(curl -s -X POST https://oauth2.googleapis.com/token \
+            -d client_id="${{ secrets.CHROME_CLIENT_ID }}" \
+            -d client_secret="${{ secrets.CHROME_CLIENT_SECRET }}" \
+            -d refresh_token="${{ secrets.CHROME_REFRESH_TOKEN }}" \
+            -d grant_type=refresh_token)
+
+          ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r '.access_token')
+
+          echo "::add-mask::$ACCESS_TOKEN"
+          echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
+
+      - name: Upload Extension
+        run: |
+          curl -v \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            -X POST \
+            -T LineLens.zip \
+            "https://chromewebstore.googleapis.com/upload/v2/publishers/${{ secrets.CHROME_PUBLISHER_ID }}/items/${{ secrets.CHROME_EXTENSION_ID }}:upload"
+
+      - name: Publish Extension
+        run: |
+          curl -v \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            -X POST \
+            "https://chromewebstore.googleapis.com/v2/publishers/${{ secrets.CHROME_PUBLISHER_ID }}/items/${{ secrets.CHROME_EXTENSION_ID }}:publish"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
